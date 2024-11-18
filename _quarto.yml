@@ -6,11 +6,11 @@ execute:
   echo: true
 
 book:
-  title: "YOUR PROJECT TITLE"
+  title: "Exploratory Data Analysis of Incident Level Shooting Data in New York City"
   author:
-    - AUTHOR1 (UNI1)
-    - AUTHOR2 (UNI2)
-  repo-url: https://github.com/YOUR_GITHUB_ACCOUNT/REPO_NAME
+    - Kevin Cai (qc2357)
+    - Chengyan Li (cl4604)
+  repo-url: https://github.com/qc15/NYShooting
   date: today
   page-footer:
     right: |
