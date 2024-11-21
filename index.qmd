@@ -3,7 +3,7 @@ Gun violence remains a pressing issue in many urban areas, especially for an int
 
 By analyzing the NYPD Shooting Incident Data (Historic), we aim to understand the patterns and factors contributing to these incidents, offering insights that may aid in developing preventative measures,or enhance the security for specific region with high shooting incident rate. This dataset provides detailed information on the location, time, and demographic profiles of victims and perpetrators, making it a valuable resource for exploring the insight of these incidents. 
 
-We will explore the data through these researches:
+We will explore the data through the researches listed below:
 1,Crime Rate Differences by Region: Investigate the variations in crime rates across different boroughs and neighborhoods in New York City to identify regional disparities and potential influencing factors.
 
 2,Crime Rate Differences by Location Classification: To be more specific, investigate the variations in crime rates across different locations. Combining with the formal research, exploring the furthur relationship between shooting crime and Region+Location.
