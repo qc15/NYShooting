@@ -1,1 +1,221 @@
 # Results
+```{r, include = FALSE, echo = FALSE}
+library(tidyr)
+library(dplyr)
+library(ggplot2)
+library(lubridate) 
+library(vcd)
+df = read.csv("data/raw/NYPD_Shooting_Incident_Data.csv")
+head(df)
+
+df$OCCUR_DATE <- as.Date(df$OCCUR_DATE, format = "%m/%d/%Y")
+df
+```
+
+
+# number of incidents each year
+```{r, }
+crime_data <- df |>
+  mutate(YearMonth = format(as.Date(OCCUR_DATE), "%Y-%m")) |>
+  group_by(YearMonth, BORO) |>
+  summarise(IncidentCount = n(), .groups = "drop") |>
+  ungroup()
+```
+
+```{r}
+crime_data <- df |>
+  mutate(YearMonth = format(as.Date(OCCUR_DATE, "%m/%d/%Y"), "%Y-%m"))
+
+all_combinations <- crime_data |>
+  distinct(YearMonth, BORO) |>
+  complete(YearMonth, BORO, fill = list(IncidentCount = 0))
+
+crime_data_complete <- crime_data |>
+  group_by(YearMonth, BORO) |>
+  summarise(IncidentCount = n(), .groups = "drop") |>
+  right_join(all_combinations, by = c("YearMonth", "BORO")) |>
+  replace_na(list(IncidentCount = 0)) |>
+  mutate(YearMonth = as.Date(paste0(YearMonth, "-01"), format = "%Y-%m-%d")) |>
+  arrange(YearMonth)
+```
+
+```{r}
+# Reorder BORO based on the observed rank
+crime_data_complete$BORO <- factor(
+  crime_data_complete$BORO,
+  levels = c("BROOKLYN", "BRONX", "QUEENS", "MANHATTAN", "STATEN ISLAND")
+)
+
+ggplot(crime_data_complete, aes(x = YearMonth, y = IncidentCount, color = BORO, group = BORO)) +
+  geom_line(linewidth = 1) +  # Add a line for each BORO
+  labs(title = "Number of Incidents Over Time by Borough",
+       x = "Year-Month", y = "Number of Incidents", color = "Borough") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+From the plot above, we found that Brooklyn almost always has the highest number of incidents in each month and Bronx almost has the second-highest number of incidents in each month. These two boroughs also have the most unstable number of incidents in each month. Queens and Manhattan contain similar number of incidents in each month. The number of incidents in Staten Island is smallest among all boroughs. 
+
+It is also noticeable that the number of incidents in each borough decreases to one level in 2013-2016 (especially for Brooklyn and Bronx) and decreases to another level in 2017-2019, but there exists a sharp increase in 2020, which is probably due to the pandemic and the police brutality protests in the wake of George Floyd's murder. The number of incidents in Brooklyn and Bronx, after 2020, returns back to a level similar to the level in 2013-2016, while it didn't decrease until 2023 in Queens and Manhattan.
+
+From the plot above, we find that there might exist a cyclic pattern in boroughs other than Staten Island, where each year is a cycle. To give a closer look at it, we facet this plot by year, which is shown below.
+
+```{r, include = FALSE, echo = FALSE}
+crime_data_complete <- crime_data_complete |>
+  mutate(Month = month(YearMonth, label = TRUE))
+
+
+ggplot(crime_data_complete, aes(x = YearMonth, y = IncidentCount, color = BORO, group = BORO)) +
+  geom_line(size = 1) +
+  labs(title = "Number of Incidents Over Time by Borough",
+       x = "Year-Month", y = "Number of Incidents", color = "Borough") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) + 
+  facet_wrap(~ Month, ncol = 3)
+```
+
+```{r, fig.height=12, fig.width=10}
+crime_data_complete <- crime_data_complete |>
+  mutate(Year = format(as.Date(paste0(YearMonth, "-01"), "%Y-%m-%d"), "%Y"))  # Extract year
+
+ggplot(crime_data_complete, aes(x = YearMonth, y = IncidentCount, color = BORO, group = BORO)) +
+  geom_line(size = 1) +  # Add a line for each BORO
+  labs(
+    title = "Number of Incidents Over Each Year by Borough",
+    x = "Year-Month", y = "Number of Incidents", color = "Borough"
+  ) +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  facet_wrap(~ Year, scales = "free_x")  # Facet by year
+
+```
+The plot above shows the number of shooting incidents over each year in each borough. From the plot, we can see that the cyclic pattern is not very strong. However, it shows that the number of shooting incidents in summer is larger than the number of shooting in other months, especially for Brooklyn and Bronx.
+
+```{r, echo = FALSE, include = FALSE}
+library(ggplot2)
+library(dplyr)
+
+# Filter data for Brooklyn
+brooklyn_data <- crime_data_complete |>
+  filter(BORO == "BROOKLYN") |>
+  mutate(Month = format(YearMonth, "%B"))
+
+# Plot Brooklyn incidents with one line for each month
+ggplot(brooklyn_data, aes(x = as.numeric(format(YearMonth, "%Y")), y = IncidentCount, color = Month, group = Month)) +
+  geom_line(size = 1) +
+  labs(title = "Brooklyn Incident Numbers by Month",
+       x = "Year", y = "Incident Count", color = "Month") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  scale_color_brewer(palette = "Paired")  # Use a distinct color palette
+```
+
+```{r, include = FALSE, echo = FALSE}
+library(lubridate)
+
+crime_data <- crime_data |>
+  mutate(OCCUR_TIME = hms::as_hms(OCCUR_TIME))
+
+crime_data <- crime_data |>
+  mutate(TimePeriod = floor(hour(OCCUR_TIME) / 2) * 2)
+
+time_counts <- crime_data |>
+  group_by(TimePeriod) |>
+  summarise(Count = n())
+
+ggplot(time_counts, aes(x = TimePeriod, y = Count)) +
+  geom_bar(stat = "identity") +
+  scale_x_continuous(breaks = seq(0, 22, by = 2), labels = paste(seq(0, 22, by = 2), seq(2, 24, by = 2), sep = "-")) +
+  labs(title = "Number of Incidents by 2-Hour Period",
+       x = "2-Hour Period", y = "Number of Incidents") +
+  theme_minimal()
+
+```
+
+# Cleveland dot plot: VIC_SEX
+```{r, include = FALSE, echo = FALSE}
+crime_data <- crime_data |>
+  mutate(YearMonth = as.Date(paste0(YearMonth, "-01"), format = "%Y-%m-%d")) |>
+  mutate(YEAR = year(YearMonth))
+
+data_summary <- crime_data |>
+  group_by(YEAR, VIC_SEX) |>
+  summarise(Count = n(), .groups = 'drop')
+
+ggplot(data_summary, aes(x = Count, y = as.factor(YEAR), color = VIC_SEX)) +
+  geom_point(size = 3) +  # Add points for each sex
+  labs(title = "Cleveland Dot Plot of Victim Sex by Year",
+       x = "Incident Count", y = "Year", color = "Victim Sex") +
+  theme_minimal() +
+  theme(axis.text.y = element_text(angle = 45, hjust = 1)) +
+  scale_color_manual(values = c("blue", "pink", "grey"),labels = c("Female", "Male", "Unknown"))
+```
+
+```{r, fig.height=18, fig.width= 10}
+data_summary <- crime_data |>
+  group_by(YEAR, VIC_SEX, VIC_RACE) |>
+  summarise(Count = n(), .groups = 'drop')
+
+ggplot(data_summary, aes(x = Count, y = as.factor(YEAR), color = VIC_SEX)) +
+  geom_point(size = 3) +  # Add points for each sex
+  labs(title = "Cleveland Dot Plot of Victim Sex by Year (Faceted by Race)",
+       x = "Incident Count", y = "Year", color = "Victim Sex") +
+  theme_minimal() +
+  theme(axis.text.y = element_text(angle = 45, hjust = 1)) +
+  scale_color_manual(
+    values = c("pink", "blue", "gray"),
+    labels = c("Female", "Male", "Unknown")
+  ) +
+  facet_wrap(~ VIC_RACE, scales = "free")
+
+```
+The plot above shows that for all races, the number of male victims is almost always larger than the number of female victims in each year. The number of female victims in each year is relatively stable compared to the number of male victims for all races. We also noticed that Black, White Hispanic, and Black Hispanic are races that have the top 3 number of victims in each year.
+
+# Heatmap of Incidents by Time and Borough
+```{r}
+crime_data_time_boro <- crime_data |>
+  mutate(
+    OCCUR_TIME = hms::as_hms(OCCUR_TIME),
+    TimePeriod = floor(hour(OCCUR_TIME) / 2) * 2
+  ) |>
+  group_by(BORO, TimePeriod) |>
+  summarise(IncidentCount = n(), .groups = "drop") |>
+  mutate(BORO = factor(BORO, levels = c("BROOKLYN", "BRONX", "QUEENS", "MANHATTAN", "STATEN ISLAND")))
+
+ggplot(crime_data_time_boro, aes(x = TimePeriod, y = BORO, fill = IncidentCount)) +
+  geom_tile() +
+  scale_x_continuous(breaks = seq(0, 22, by = 2), labels = paste0(seq(0, 22, by = 2), "-", seq(2, 24, by = 2))) +
+  scale_fill_gradient(low = "white", high = "red") +
+  labs(title = "Heatmap of Incidents by Time and Borough",
+       x = "Time Period (2-hour intervals)", y = "Borough", fill = "Incident Count") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+```
+The heatmap above shows the number of incidents across different time periods and boroughs. It divides the exact time of shooting incident into 12 periods, each of which consists of 2 hours. From the plot, we can find for all boroughs, the number of incidents increases gradually after 10:00. It reaches the peak in the periods 22:00-00:00 and 0:00-2:00, which is what we expected. The number of incidents decreases after 2:00 and reaches the minimum value in 8:00-10:00. The amount of decrease is more intense from the period 4:00-6:00 to the period 6:00-8:00 compared to changes in other periods. This pattern exists in all boroughs.
+
+```{r}
+df_clean_age <- df |>
+  filter(VIC_AGE_GROUP != "1022", PERP_AGE_GROUP != "1020", PERP_AGE_GROUP != "(null)", PERP_AGE_GROUP != "", PERP_AGE_GROUP != "940", PERP_AGE_GROUP != "224", PERP_AGE_GROUP != "1028")  # Remove invalid rows
+
+age_table <- table(df_clean_age$PERP_AGE_GROUP, df_clean_age$VIC_AGE_GROUP)
+
+age_table_long <- as.data.frame(as.table(age_table))
+
+colnames(age_table_long) <- c("PERP_AGE_GROUP", "VIC_AGE_GROUP", "Count")
+
+ggplot(age_table_long, aes(x = PERP_AGE_GROUP, y = VIC_AGE_GROUP, fill = Count)) +
+  geom_tile(color = "white") +  # Add white borders around tiles
+  scale_fill_distiller(palette = "Blues", direction = 1) +
+  labs(
+    title = "Heatmap of Perpetrator and Victim Age Groups",
+    x = "Perpetrator Age Group",
+    y = "Victim Age Group",
+    fill = "Count"
+  ) +
+  theme_minimal() +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1)  # Rotate x-axis labels for readability
+  )
+
+```
+The heatmap above shows the heatmap of age groups of perpetrators and victims. From the plot, we can see that the victims in 18-24 and 25-44 are much more than victims in other age groups. Other than perpetrators over 65 years old, almost perpetrators in every age group are more likely to shoot victims who are between 18-44 years old. In addition, we find that the perpetrators in 18-24 years old are more likely to shoot vitims who are 18-24 years old instead of victims who are 25-44 years old, while the perpetrators in 25-44 years old are more likely to shoot victims who are 25-44 years old instead of victims who are 18-24 years old. This is reasonable because individuals in similar age groups are more likely to interact within the same social environments.
