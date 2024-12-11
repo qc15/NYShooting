@@ -1,4 +1,5 @@
 # Results
+
 ```{r, include = FALSE, echo = FALSE}
 library(tidyr)
 library(dplyr)
@@ -47,13 +48,13 @@ crime_data_complete$BORO <- factor(
 )
 
 ggplot(crime_data_complete, aes(x = YearMonth, y = IncidentCount, color = BORO, group = BORO)) +
-  geom_line(linewidth = 1) +  # Add a line for each BORO
+  geom_line(linewidth = 1) +  
   labs(title = "Number of Incidents Over Time by Borough",
        x = "Year-Month", y = "Number of Incidents", color = "Borough") +
   theme_minimal() +
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 ```
-From the plot above, we found that Brooklyn almost always has the highest number of incidents in each month and Bronx almost has the second-highest number of incidents in each month. These two boroughs also have the most unstable number of incidents in each month. Queens and Manhattan contain similar number of incidents in each month. The number of incidents in Staten Island is smallest among all boroughs. 
+From the plot above, we found that Brooklyn almost always has the highest number of incidents in each month and Bronx almost has the second-highest number of incidents in each month. These two boroughs also have the most unstable number of incidents in each month. Queens and Manhattan contain similar number of incidents in each month. The number of incidents in Staten Island is smallest among all boroughs, maybe because of its  petite area.
 
 It is also noticeable that the number of incidents in each borough decreases to one level in 2013-2016 (especially for Brooklyn and Bronx) and decreases to another level in 2017-2019, but there exists a sharp increase in 2020, which is probably due to the pandemic and the police brutality protests in the wake of George Floyd's murder. The number of incidents in Brooklyn and Bronx, after 2020, returns back to a level similar to the level in 2013-2016, while it didn't decrease until 2023 in Queens and Manhattan.
 
@@ -78,14 +79,14 @@ crime_data_complete <- crime_data_complete |>
   mutate(Year = format(as.Date(paste0(YearMonth, "-01"), "%Y-%m-%d"), "%Y"))  # Extract year
 
 ggplot(crime_data_complete, aes(x = YearMonth, y = IncidentCount, color = BORO, group = BORO)) +
-  geom_line(size = 1) +  # Add a line for each BORO
+  geom_line(size = 1) +  
   labs(
     title = "Number of Incidents Over Each Year by Borough",
     x = "Year-Month", y = "Number of Incidents", color = "Borough"
   ) +
   theme_minimal() +
   theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
-  facet_wrap(~ Year, scales = "free_x")  # Facet by year
+  facet_wrap(~ Year, scales = "free_x")  
 
 ```
 The plot above shows the number of shooting incidents over each year in each borough. From the plot, we can see that the cyclic pattern is not very strong. However, it shows that the number of shooting incidents in summer is larger than the number of shooting in other months, especially for Brooklyn and Bronx.
@@ -130,6 +131,88 @@ ggplot(time_counts, aes(x = TimePeriod, y = Count)) +
   theme_minimal()
 
 ```
+
+# Histogram: OCCUR_TIME (0-2, 2-4, …, 22-24)
+```{r}
+df$OCCUR_HOUR <- as.numeric(sub(":.*", "", df$OCCUR_TIME))
+
+time_hist_data <- df %>%
+  mutate(TIME_BIN = cut(OCCUR_HOUR, breaks = seq(0, 24, by = 2), right = FALSE, include.lowest = TRUE)) %>%
+  group_by(TIME_BIN) %>%
+  summarise(Frequency = n()) %>%
+  mutate(Percentage = Frequency / sum(Frequency) * 100)
+
+print(time_hist_data)
+```
+
+```{r}
+ggplot(time_hist_data, aes(x = TIME_BIN, y = Percentage)) +
+  geom_bar(stat = "identity", fill = "steelblue", color = "black", alpha = 1) +
+  labs(title = "Histogram of Occur Time", 
+       x = "Time Interval (Hours)", 
+       y = "Percentage (%)") +
+  scale_y_continuous(labels = scales::percent_format(scale = 1)) +
+  theme_grey()
+```
+```{r}
+
+df$TIME_BIN <- cut(df$OCCUR_HOUR, breaks = seq(0, 24, by = 2), right = FALSE, include.lowest = TRUE)
+
+ggplot(df, aes(x = TIME_BIN, fill = BORO)) +
+  geom_bar(alpha = 1, color = "black") +
+  labs(title = "Histogram of Occur Time by Region", 
+       x = "Time Interval (Hours)", 
+       y = "Frequency") +
+  facet_wrap(~ BORO, ncol = 3) +
+  theme_grey() + 
+  theme(axis.text.x = element_text(size=8,angle=45, hjust = 1))  
+```
+From the histogram above, we can observe that over 50% of shooting incidents occur between 8 PM and 4 AM, with the peak happening between 10 PM and 2 AM. This pattern is consistent across all regions, even in Staten Island, which has the lowest population. This aligns with the operational dynamics of most cities, especially in a place like New York, which does not enforce a curfew. Many shops and restaurants remain open even during the early hours of the morning, resulting in a nighttime traffic flow that is not significantly lower than during the day. However, reduced police presence at night, particularly around subway stations, leads to a higher number of shooting incidents that go unchecked. Conversely, we can see that 6 AM to 10 AM is the time period with the fewest shooting incidents. On the one hand, most people are at home resting during these hours; on the other hand, the city begins its new day of operations, and workers come out to maintain order. Therefore, it is not surprising that shooting incidents drop significantly during this time.
+
+
+#Line plot: Incident in one year
+Based on the Line Plot: Number of Incidents per Year/Month, we observe that the number of shooting incidents during this year is particularly high, likely due to the impact of the pandemic. Therefore, we selected this year as a comprehensive sample to analyze the day-of-week effect.
+```{r}
+df$OCCUR_DATE <- as.Date(df$OCCUR_DATE, format = "%m/%d/%Y")
+df <- df %>%
+  mutate(
+    Day_of_Week = wday(OCCUR_DATE, label = TRUE, week_start = 1), 
+    Month = month(OCCUR_DATE, label = TRUE),                     
+    Year = year(OCCUR_DATE)                                      
+  )
+
+df_2020 <- df %>% filter(Year == 2020)
+
+daily_counts <- df_2020 %>%
+  group_by(OCCUR_DATE, Day_of_Week) %>%
+  summarise(Incident_Count = n())
+
+ggplot(daily_counts, aes(x = OCCUR_DATE, y = Incident_Count, group = Day_of_Week)) +
+  geom_line(color = "black", size = 0.7) +
+  facet_wrap(~ Day_of_Week, ncol = 3) +
+  labs(
+    title = "Daily Shooting Incidents in 2020 by Day of Week",
+    x = "Date",
+    y = "Number of Incidents"
+  ) +
+  theme_grey()+
+  theme(axis.text.x = element_text(size=5,angle=45, hjust = 1))
+```
+
+```{r}
+ggplot(daily_counts, aes(x = OCCUR_DATE, y = Incident_Count, group = Day_of_Week)) +
+  geom_line(color = "black", size = 0.7) +
+  geom_smooth(se = FALSE, color = "blue", size = 1) +
+  facet_wrap(~ Day_of_Week, ncol = 7) +
+  labs(
+    title = "Daily Shooting Incidents in 2020 by Day of Week (With Smoother)",
+    x = "Date",
+    y = "Number of Incidents"
+  ) +
+  theme_grey()+
+  theme(axis.text.x = element_text(size=5, hjust = 1))
+```
+With the help of the smoother, we can observe that shooting incidents are generally higher on weekends compared to weekdays, especially on Sundays. This aligns with common sense, as most people work during the weekdays, while weekends are typically reserved for relaxation or social gatherings. This may cause people staying out later at night, which, as seen in our Histogram: OCCUR_TIME (0-2, 2-4, …, 22-24), is when incidents are more likely to occur, matching this pattern.
 
 # Cleveland dot plot: VIC_SEX
 ```{r, include = FALSE, echo = FALSE}
