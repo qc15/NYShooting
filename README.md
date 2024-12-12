@@ -1,30 +1,19 @@
-# Description of the project
+Gun violence remains a pressing issue in many urban areas, especially for an international city such as New York. It is crucial to note that gun violence is not only a public safety concern but also a reflection of broader societal challenges, such as inequality and access to resources. Through this study, we hope to contribute to the ongoing discourse on improving community safety and equity.
 
-This is a line from Rstudio
+By analyzing the NYPD Shooting Incident Data (Historic), we aim to understand the patterns and factors contributing to these incidents, offering insights that may aid in developing preventative measures,or enhance the security for specific region with high shooting incident rate. This dataset provides detailed information on the location, time, and demographic profiles of victims and perpetrators, making it a valuable resource for exploring the insight of these incidents.
 
-### Copy the repo link (GitHub)
+We will explore the data through the researches listed below: 
 
-- [ ] 1. Click the green Code button, choose "HTTPS" and copy the link below. It should have the format: https&#xfeff;://github.com/[USERNAME]/[REPONAME].git
+1. Crime Rate Differences by Region: Investigate the variations in crime rates across different boroughs and neighborhoods in New York City to identify regional disparities and potential influencing factors.
 
-### Clone the repo (RStudio)
+2. Cyclic Patterns of Crime: Analyze the distribution of crimes over time, focusing on seasonal, weekly, monthly, or daily trends, to identify peak periods and understand temporal variations in gun violence incidents.
 
-- [ ] 1. Clone your new repo with *File, New Project..., Version Control, Git* in RStudio. You will need to paste the link from the previous step in the Repository URL box. If it's not automatically populated, enter the repo name in the "Project directory name:" box. Choose the location of the project.
+3. Information about the victims and their relationship with Perpetrator: Further investigation into specific details about the victims, such as age, gender, and race, can help us better protect and manage specific groups of people.
 
-### Render the book (RStudio)
+# Folder Hierarchy
+The source code for each part of the report is in index.qmd, data.qmd, results.qmd, d3graph.qmd, and conclusion.qmd.
 
-- [ ] 1. If you haven't already, click "Help" "Check for Updates" to make sure you have the latest version of RStudio (and thus have Quarto installed.)
-
-- [ ] 2. Render the web site locally by clicking the "Build" tap on the right and then "Render Book".
-
-- [ ] 3. Use `browseURL("docs/index.html")` to view your book locally (or just open `docs/index.html` in a browser).
-
-- [ ] 4. If it looks good, commit and push all changed files to GitHub. 
-
-(You will need to repeat steps 2 and 4 every time you wish to update the book on GitHub Pages.)
-
-### Update README (GitHub or RStudio)
-
-- [ ] 1. Delete the content of this **README** and add a short description of your project in its place. If you're working locally, be sure to commit and push the changes to GitHub.
+d3graph.qmd has a link a scripts/myscript.js, which contains the D3/Javascript for the interactive graph.
 
 
 

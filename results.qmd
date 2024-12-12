@@ -11,7 +11,7 @@ df$OCCUR_DATE <- as.Date(df$OCCUR_DATE, format = "%m/%d/%Y")
 ```
 
 
-##1, Number of Incidents over Years
+## Number of Incidents over Years
 Firstly, we can see that New York City is divided into five different boroughs:Brooklyn, Bronx, Manhattan, Queens, and Staten Island. To investigate the relationship between safety levels across these areas, we began by using a line plot to visualize and compare the number of shooting incidents in each borough.
 ```{r}
 crime_data <- df |>
@@ -58,14 +58,14 @@ It is also noticeable that the number of incidents in each borough decreases to 
 
 From the plot above, we find that there might exist a cyclic pattern in boroughs other than Staten Island, where each year is a cycle. To give a closer look at it, we facet this plot by year.
 
-##2,Cyclic pattern of shooting incident over year
-```{r}
+## Cyclic pattern of shooting incident over year
+```{r, include=FALSE}
 crime_data_complete <- crime_data_complete |>
   mutate(Month = month(YearMonth, label = TRUE))
 
 
 ggplot(crime_data_complete, aes(x = YearMonth, y = IncidentCount, color = BORO, group = BORO)) +
-  geom_line(size = 1) +
+  geom_line(linewidth = 1) +
   labs(title = "Number of Incidents Over Time by Borough",
        x = "Year-Month", y = "Number of Incidents", color = "Borough") +
   theme_minimal() +
@@ -78,7 +78,7 @@ crime_data_complete <- crime_data_complete |>
   mutate(Year = format(as.Date(paste0(YearMonth, "-01"), "%Y-%m-%d"), "%Y"))  # Extract year
 
 ggplot(crime_data_complete, aes(x = YearMonth, y = IncidentCount, color = BORO, group = BORO)) +
-  geom_line(size = 1) +  
+  geom_line(linewidth = 1) +  
   labs(
     title = "Number of Incidents Over Each Year by Borough",
     x = "Year-Month", y = "Number of Incidents", color = "Borough"
@@ -120,7 +120,7 @@ This line chart illustrates the monthly distribution of shooting incidents over 
 
 After studying the cyclic pattern of incidents by month, we decided to conduct a more detailed analysis by examining the high-occurrence time periods of shooting incidents within a single day. The insights gained from this data can help in better planning and managing the city.
 
-##3, Occur Time
+## Occur Time
 ```{r}
 df$OCCUR_HOUR <- as.numeric(sub(":.*", "", df$OCCUR_TIME))
 
@@ -157,7 +157,7 @@ From the histogram above, we can observe that over 50% of shooting incidents occ
 
 After a basic analysis of the occurrence time of shooting incidents, we decided to use a heatmap to observe the relationship between the number of incidents, locations, and time.
 
-##4,The relationship between occur time and borough
+## The relationship between occur time and borough
 ```{r}
 crime_data_time_boro <- crime_data |>
   mutate(
@@ -182,7 +182,7 @@ This heatmap reveals an even more significant patterns in the distribution of sh
 
 When studying cyclic patterns, the day-of-week effect is also crucial, as it highlights which days of the week warrant attention and caution. Therefore, we decided to use a line plot to create a weekly plot for a specific year, with the aid of a smooth line to more intuitively observe the probability and trends of incidents occurring on each day.
 
-##5,Day-of-week effect
+## Day-of-week effect
 Based on the Line Plot: Number of Incidents per Year/Month, we observe that the number of shooting incidents during this year is particularly high, likely due to the impact of the pandemic. Therefore, we selected this year as a comprehensive sample to analyze the day-of-week effect.
 ```{r}
 df$OCCUR_DATE <- as.Date(df$OCCUR_DATE, format = "%m/%d/%Y")
@@ -228,7 +228,7 @@ With the help of the smoother, we can observe that shooting incidents are genera
 
 Next, we shift our focus to the incidents themselves. By analyzing the number of crimes committed across different age groups, we can better understand which groups are more prone to committing crimes, allowing us to implement more effective management and guidance, particularly for younger individuals. We will use a Cleveland dot plot for this analysis.
 
-##6,Victim Age
+## Victim Age
 ```{r}
 df <- df |>
   mutate(VIC_AGE_GROUP = case_when(
@@ -265,7 +265,7 @@ From this Cleveland bar chart, it is evident that shooting victims of different 
 
 It's not just about age; we need more information about the victims to better protect specific age groups and certain communities from harm. Therefore, we use a Cleveland dot plot again to study the impact of gender and race on victims.
 
-## 7,Victim Sex
+## Victim Sex
 ```{r}
 crime_data <- crime_data |>
   mutate(YearMonth = as.Date(paste0(YearMonth, "-01"), format = "%Y-%m-%d")) |>
@@ -276,12 +276,12 @@ data_summary <- crime_data |>
   summarise(Count = n(), .groups = 'drop')
 
 ggplot(data_summary, aes(x = Count, y = as.factor(YEAR), color = VIC_SEX)) +
-  geom_point(size = 3) +  # Add points for each sex
+  geom_point(size = 3) +
   labs(title = "Cleveland Dot Plot of Victim Sex by Year",
        x = "Incident Count", y = "Year", color = "Victim Sex") +
   theme_minimal() +
   theme(axis.text.y = element_text(angle = 45, hjust = 1)) +
-  scale_color_manual(values = c("blue", "red", "grey"),labels = c("Female", "Male", "Unknown"))
+  scale_color_manual(values = c("red", "blue", "grey"),labels = c("Female", "Male", "Unknown"))
 ```
 
 ```{r, fig.height=18, fig.width= 10}
@@ -290,13 +290,13 @@ data_summary <- crime_data |>
   summarise(Count = n(), .groups = 'drop')
 
 ggplot(data_summary, aes(x = Count, y = as.factor(YEAR), color = VIC_SEX)) +
-  geom_point(size = 3) +  # Add points for each sex
+  geom_point(size = 3) +
   labs(title = "Cleveland Dot Plot of Victim Sex by Year (Faceted by Race)",
        x = "Incident Count", y = "Year", color = "Victim Sex") +
   theme_minimal() +
   theme(axis.text.y = element_text(angle = 45, hjust = 1)) +
   scale_color_manual(
-    values = c("blue", "red", "gray"),
+    values = c("red", "blue", "gray"),
     labels = c("Female", "Male", "Unknown")
   ) +
   facet_wrap(~ VIC_RACE, scales = "free")
@@ -307,7 +307,7 @@ The plot above shows that for all races, the number of male victims is almost al
 Last but not least,We still need to study the relationships between victims and perpetrators, such as which age groups are more likely to experience conflicts that escalate into shooting incidents. With this research, we can implement more control measures in venues frequently visited by specific age groups (e.g., bars and nightclubs commonly frequented by young adults aged 25-44) to suppress the occurrence of shooting incidents.
 
 
-##8,Relationship between perpetrators and victims, based on age
+## Relationship between perpetrators and victims, based on age
 ```{r}
 df_clean_age <- df |>
   filter(VIC_AGE_GROUP != "1022", PERP_AGE_GROUP != "1020", PERP_AGE_GROUP != "(null)", PERP_AGE_GROUP != "", PERP_AGE_GROUP != "940", PERP_AGE_GROUP != "224", PERP_AGE_GROUP != "1028", VIC_AGE_GROUP!="UNKNOWN",PERP_AGE_GROUP!="UNKNOWN")
@@ -319,7 +319,7 @@ age_table_long <- as.data.frame(as.table(age_table))
 colnames(age_table_long) <- c("PERP_AGE_GROUP", "VIC_AGE_GROUP", "Count")
 
 ggplot(age_table_long, aes(x = PERP_AGE_GROUP, y = VIC_AGE_GROUP, fill = Count)) +
-  geom_tile(color = "white") +  # Add white borders around tiles
+  geom_tile(color = "white") +
   scale_fill_distiller(palette = "Blues", direction = 1) +
   labs(
     title = "Heatmap of Perpetrator and Victim Age Groups",
@@ -336,12 +336,12 @@ ggplot(age_table_long, aes(x = PERP_AGE_GROUP, y = VIC_AGE_GROUP, fill = Count))
 The heatmap above shows the heatmap of age groups of perpetrators and victims. From the plot, we can see that the victims in 18-24 and 25-44 are much more than victims in other age groups. Other than perpetrators over 65 years old, almost perpetrators in every age group are more likely to shoot victims who are between 18-44 years old. In addition, we find that the perpetrators in 18-24 years old are more likely to shoot vitims who are 18-24 years old instead of victims who are 25-44 years old, while the perpetrators in 25-44 years old are more likely to shoot victims who are 25-44 years old instead of victims who are 18-24 years old. This is reasonable because individuals in similar age groups are more likely to interact within the same social environments.
 
 
-##9, Preparation for d3
+## Preparation for d3
 With the help of the static plots above, we successfully explored the relationship between shooting incidents and boroughs, as well as examined whether the probability of incidents has a cyclic pattern related to months, weeks, or specific time periods within a day. Furthermore, we delved deeper into the incidents themselves, investigating the relationships between victims' age, gender, race, and the age of offenders. However, to further study and prevent shooting incidents, we need to conduct a more detailed analysis of the specific locations where shootings occur and examine how they change over time (e.g., multiple shooting incidents occurring at the same location and time might indicate a massive gunfight, which should be prioritized for prevention). To achieve this, we utilized D3 to plot the latitude and longitude of shooting incidents in Brooklyn during July 2020, as this month witnessed an unprecedented number of incidents.
 ```{r}
 filtered_data <- crime_data |>
   filter(
-    BORO == "BROOKLYN",                              # Only data from Brooklyn
+    BORO == "BROOKLYN",
     format(OCCUR_DATE, "%Y-%m") == "2020-07"
   ) |>
   select(OCCUR_DATE, BORO, Latitude, Longitude)
@@ -354,13 +354,11 @@ output_text <- filtered_data |>
                   ", longitude: ", Longitude, 
                   ", date: '", OCCUR_DATE, "' }")
   ) |>
-  pull(text) |> # Extract as a vector of text strings
-  paste(collapse = ",\n  ") # Combine into a single string with line breaks
+  pull(text) |>
+  paste(collapse = ",\n  ")
 
-# Add brackets to wrap the final output
 output_text <- paste0("[\n  ", output_text, "\n]")
 
-# Print the result
 cat(output_text)
 ```
 
