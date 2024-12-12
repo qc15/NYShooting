@@ -300,3 +300,39 @@ ggplot(age_table_long, aes(x = PERP_AGE_GROUP, y = VIC_AGE_GROUP, fill = Count))
 
 ```
 The heatmap above shows the heatmap of age groups of perpetrators and victims. From the plot, we can see that the victims in 18-24 and 25-44 are much more than victims in other age groups. Other than perpetrators over 65 years old, almost perpetrators in every age group are more likely to shoot victims who are between 18-44 years old. In addition, we find that the perpetrators in 18-24 years old are more likely to shoot vitims who are 18-24 years old instead of victims who are 25-44 years old, while the perpetrators in 25-44 years old are more likely to shoot victims who are 25-44 years old instead of victims who are 18-24 years old. This is reasonable because individuals in similar age groups are more likely to interact within the same social environments.
+
+```{r}
+print(crime_data)
+filtered_data <- crime_data |>
+  filter(
+    BORO == "BROOKLYN",                              # Only data from Brooklyn
+    format(OCCUR_DATE, "%Y-%m") == "2020-07"
+  ) |>
+  select(OCCUR_DATE, BORO, Latitude, Longitude)
+print(filtered_data)
+```
+
+```{r}
+output_text <- filtered_data %>%
+  mutate(
+    text = paste0("{ latitude: ", Latitude, 
+                  ", longitude: ", Longitude, 
+                  ", date: '", OCCUR_DATE, "' }")
+  ) %>%
+  pull(text) %>% # Extract as a vector of text strings
+  paste(collapse = ",\n  ") # Combine into a single string with line breaks
+
+# Add brackets to wrap the final output
+output_text <- paste0("[\n  ", output_text, "\n]")
+
+# Print the result
+cat(output_text)
+```
+```{r}
+date_counts <- filtered_data %>%
+  group_by(OCCUR_DATE) %>%
+  summarize(Count = n())
+
+# Print the counts
+print(date_counts)
+```
