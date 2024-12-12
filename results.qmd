@@ -336,3 +336,13 @@ date_counts <- filtered_data %>%
 # Print the counts
 print(date_counts)
 ```
+
+```{r}
+# Find minimum value in each column
+min_values <- apply(filtered_data, 2, min)
+max_values <- apply(filtered_data, 2, max)
+
+# Print result
+print(min_values)
+print(max_values)
+```

@@ -183,13 +183,18 @@ const height = 600;
 const margins = { top: 20, right: 20, bottom: 40, left: 40 };
 const currentDate = { value: new Date('2020-07-01') };
 
+const datePanel = d3.select('div#plot')
+      .insert('div', ':first-child') // Insert as the first element in <body>
+      .attr('class', 'date-panel')
+      .text(`Current Date: ${currentDate.value.toISOString().split('T')[0]}`);
+
 // Create scales
 const xScale = d3.scaleLinear()
-  .domain([-74, -73.9]) // Longitude range for Brooklyn
+  .domain([-74.02, -73.86]) // Longitude range for Brooklyn
   .range([margins.left, width - margins.right]);
 
 const yScale = d3.scaleLinear()
-  .domain([40.65, 40.7]) // Latitude range for Brooklyn
+  .domain([40.58, 40.74]) // Latitude range for Brooklyn
   .range([height - margins.bottom, margins.top]);
 
 // Create SVG dynamically
@@ -240,6 +245,9 @@ const updateChart = (currentDate) => {
     .duration(500)
     .attr('r', 0)
     .remove();
+    
+  // Update date panel
+  datePanel.text(`Current Date: ${currentDate.toISOString().split('T')[0]}`);
 };
 
 // Initial render
