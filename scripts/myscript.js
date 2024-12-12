@@ -197,7 +197,7 @@ const svg = d3.select("div#plot")
   .append('svg')
   .attr('width', width)
   .attr('height', height)
-  .style('border', '1px solid black');
+  .style('border', 'none');
 
 const xAxis = d3.axisBottom(xScale).ticks(5);
 const yAxis = d3.axisLeft(yScale).ticks(5);
@@ -209,6 +209,23 @@ svg.append('g')
 svg.append('g')
   .attr('transform', `translate(${margins.left}, 0)`)
   .call(yAxis);
+  
+svg.append('text')
+  .attr('class', 'x-axis-label')
+  .attr('x', width / 2) // Center the label horizontally
+  .attr('y', height - 10) // Position slightly below the x-axis
+  .attr('text-anchor', 'middle')
+  .style('font-size', '13px')
+  .text('Longitude');
+
+svg.append('text')
+  .attr('class', 'y-axis-label')
+  .attr('x', -(height / 2)+10)
+  .attr('y', 10)
+  .attr('text-anchor', 'middle')
+  .attr('transform', 'rotate(-90)') // Rotate the label
+  .style('font-size', '13px')
+  .text('Latitude');
 
 // Add a group for circles and labels
 const dataGroup = svg.append('g').attr('class', 'data-group');
@@ -287,3 +304,9 @@ d3.select('#previous-day').on('click', () => {
   updateChart(currentDate.value);
 });
 
+d3.select("div#plot")
+  .append("p")
+  .attr("class", "user-instruction")
+  .style("font-size", "14px")
+  .style("margin-top", "20px")
+  .text("Instruction: The graph represents the location of the shooting incidents on the date in Brooklyn shown on the top of the graph. Each number near each circle represents the number of victims in that location. Click the button 'Next Day' to see the location of the shooting incidents on the next day in Brooklyn and click the button 'Previous Day' to see the location of shooting incidents on the previous day.")
