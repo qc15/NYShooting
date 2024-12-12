@@ -61,7 +61,7 @@ From the plot above, we find that there might exist a cyclic pattern in boroughs
 
 #(2)Line Plot: Cyclic pattern of shooting incident over year
 
-```{r}
+```{r, include=FALSE}
 crime_data_complete <- crime_data_complete |>
   mutate(Month = month(YearMonth, label = TRUE))
 
@@ -93,22 +93,30 @@ ggplot(crime_data_complete, aes(x = YearMonth, y = IncidentCount, color = BORO, 
 The plot above shows the number of shooting incidents over each year in each borough. From the plot, we can see that the cyclic pattern is not very strong. However, it shows that the number of shooting incidents in summer is larger than the number of shooting in other months, especially for Brooklyn and Bronx.
 
 ```{r}
-library(ggplot2)
-library(dplyr)
-
-# Filter data for Brooklyn
 brooklyn_data <- crime_data_complete |>
   filter(BORO == "BROOKLYN") |>
-  mutate(Month = format(YearMonth, "%B"))
+  mutate(
+    Month = factor(format(YearMonth, "%B"), 
+                   levels = month.name)
+  )
 
-# Plot Brooklyn incidents with one line for each month
-ggplot(brooklyn_data, aes(x = as.numeric(format(YearMonth, "%Y")), y = IncidentCount, color = Month, group = Month)) +
+ggplot(brooklyn_data, aes(
+  x = as.numeric(format(YearMonth, "%Y")), 
+  y = IncidentCount, 
+  color = Month, 
+  group = Month
+)) +
   geom_line(size = 1) +
-  labs(title = "Brooklyn Incident Numbers by Month",
-       x = "Year", y = "Incident Count", color = "Month") +
+  labs(
+    title = "Brooklyn Incident Numbers by Month",
+    x = "Year", 
+    y = "Incident Count", 
+    color = "Month"
+  ) +
   theme_minimal() +
   theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
-  scale_color_brewer(palette = "Paired")  # Use a distinct color palette
+  scale_color_viridis_d(option = "plasma", begin = 0, end = 1)
+
 ```
 This line chart illustrates the monthly distribution of shooting incidents over time. A notable observation is the sharp spike in incidents during July of 2020, significantly exceeding counts in any other month or year. This anomaly may reflect specific societal or environmental factors, such as social unrest or the COVID-19 pandemic's impact during that period. Generally, the chart reveals a seasonal pattern where summer months (June to August) tend to have higher incident counts compared to colder months, such as January and February. Over the years, there is an overall declining trend in incident counts across most months, indicating potential improvements in public safety or effective interventions. However, periodic fluctuations highlight the persistent need for targeted measures during high-risk months, especially in the summer.
 
@@ -118,13 +126,11 @@ After studying the cyclic pattern of incidents by month, we decided to conduct a
 ```{r}
 df$OCCUR_HOUR <- as.numeric(sub(":.*", "", df$OCCUR_TIME))
 
-time_hist_data <- df %>%
-  mutate(TIME_BIN = cut(OCCUR_HOUR, breaks = seq(0, 24, by = 2), right = FALSE, include.lowest = TRUE)) %>%
-  group_by(TIME_BIN) %>%
-  summarise(Frequency = n()) %>%
+time_hist_data <- df |>
+  mutate(TIME_BIN = cut(OCCUR_HOUR, breaks = seq(0, 24, by = 2), right = FALSE, include.lowest = TRUE)) |>
+  group_by(TIME_BIN) |>
+  summarise(Frequency = n()) |>
   mutate(Percentage = Frequency / sum(Frequency) * 100)
-
-print(time_hist_data)
 ```
 
 ```{r}
@@ -182,18 +188,18 @@ When studying cyclic patterns, the day-of-week effect is also crucial, as it hig
 Based on the Line Plot: Number of Incidents per Year/Month, we observe that the number of shooting incidents during this year is particularly high, likely due to the impact of the pandemic. Therefore, we selected this year as a comprehensive sample to analyze the day-of-week effect.
 ```{r}
 df$OCCUR_DATE <- as.Date(df$OCCUR_DATE, format = "%m/%d/%Y")
-df <- df %>%
+df <- df |>
   mutate(
     Day_of_Week = wday(OCCUR_DATE, label = TRUE, week_start = 1), 
     Month = month(OCCUR_DATE, label = TRUE),                     
     Year = year(OCCUR_DATE)                                      
   )
 
-df_2020 <- df %>% filter(Year == 2020)
+df_2020 <- df |> filter(Year == 2020)
 
-daily_counts <- df_2020 %>%
-  group_by(OCCUR_DATE, Day_of_Week) %>%
-  summarise(Incident_Count = n())
+daily_counts <- df_2020 |>
+  group_by(OCCUR_DATE, Day_of_Week) |>
+  summarise(Incident_Count = n(), .groups = "drop")
 
 ggplot(daily_counts, aes(x = OCCUR_DATE, y = Incident_Count, group = Day_of_Week)) +
   geom_line(color = "black", size = 0.7) +
@@ -226,25 +232,24 @@ Next, we shift our focus to the incidents themselves. By analyzing the number of
 
 #(6)Faceted Cleveland dot plot: Number of victims each year, faceted by VIC_AGE_GROUP
 ```{r}
-df <- df %>%
+df <- df |>
   mutate(VIC_AGE_GROUP = case_when(
     VIC_AGE_GROUP %in% c("<18", "18-24", "25-44", "45-64", "65+", "UNKNOWN") ~ VIC_AGE_GROUP,
     TRUE ~ "UNKNOWN"
   ))
-unique(df$VIC_AGE_GROUP)
 ```
 
 ```{r}
-df_cleaned <- df %>%
+df_cleaned <- df |>
   mutate(VIC_AGE_GROUP = case_when(
     VIC_AGE_GROUP %in% c("<18", "18-24", "25-44", "45-64", "65+") ~ VIC_AGE_GROUP,
     TRUE ~ NA_character_  
-  )) %>%
+  )) |>
   filter(!is.na(VIC_AGE_GROUP)) 
 
-processed_data <- df_cleaned %>%
-  mutate(OCCUR_YEAR = year(as.Date(OCCUR_DATE, format = "%m/%d/%Y"))) %>%
-  group_by(OCCUR_YEAR, VIC_AGE_GROUP) %>%
+processed_data <- df_cleaned |>
+  mutate(OCCUR_YEAR = year(as.Date(OCCUR_DATE, format = "%m/%d/%Y"))) |>
+  group_by(OCCUR_YEAR, VIC_AGE_GROUP) |>
   summarise(Victim_Count = n(), .groups = "drop")
 
 ggplot(processed_data, aes(x = Victim_Count, y = factor(OCCUR_YEAR), color = VIC_AGE_GROUP)) +
@@ -344,13 +349,13 @@ filtered_data <- crime_data |>
 ```
 
 ```{r, results='hide'}
-output_text <- filtered_data %>%
+output_text <- filtered_data |>
   mutate(
     text = paste0("{ latitude: ", Latitude, 
                   ", longitude: ", Longitude, 
                   ", date: '", OCCUR_DATE, "' }")
-  ) %>%
-  pull(text) %>% # Extract as a vector of text strings
+  ) |>
+  pull(text) |> # Extract as a vector of text strings
   paste(collapse = ",\n  ") # Combine into a single string with line breaks
 
 # Add brackets to wrap the final output
@@ -361,8 +366,8 @@ cat(output_text)
 ```
 
 ```{r}
-date_counts <- filtered_data %>%
-  group_by(OCCUR_DATE) %>%
+date_counts <- filtered_data |>
+  group_by(OCCUR_DATE) |>
   summarize(Count = n())
 ```
 

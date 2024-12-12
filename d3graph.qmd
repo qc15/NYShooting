@@ -12,10 +12,13 @@
   }
 </style> 
 
+<h1>Interactive plot: Daily Locations of Shooting Incidents in July 2020 in Brooklyn</h1>
+
 <div id="plot">
 </div>
 
 <button id="next-day">Next Day</button>
+<button id="previous-day">Previous Day</button>
 
 <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
 <script src="scripts/myscript.js"></script>

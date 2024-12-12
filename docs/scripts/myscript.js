@@ -1,6 +1,4 @@
 // add your JavaScript/D3 to this file
-
-// Example dataset
 const data = [
   { latitude: 40.6706974, longitude: -73.890719834, date: '2020-07-15' },
   { latitude: 40.6690221910001, longitude: -73.9591611129999, date: '2020-07-15' },
@@ -177,34 +175,30 @@ const data = [
   { latitude: 40.6532271610001, longitude: -73.912697714, date: '2020-07-02' }
 ];
 
-// Initial settings
 const width = 800;
 const height = 600;
 const margins = { top: 20, right: 20, bottom: 40, left: 40 };
 const currentDate = { value: new Date('2020-07-01') };
 
 const datePanel = d3.select('div#plot')
-      .insert('div', ':first-child') // Insert as the first element in <body>
-      .attr('class', 'date-panel')
-      .text(`Current Date: ${currentDate.value.toISOString().split('T')[0]}`);
+  .insert('div', ':first-child')
+  .attr('class', 'date-panel')
+  .text(`Current Date: ${currentDate.value.toISOString().split('T')[0]}`);
 
-// Create scales
 const xScale = d3.scaleLinear()
-  .domain([-74.015, -73.860]) // Longitude range for Brooklyn
+  .domain([-74.015, -73.860])
   .range([margins.left, width - margins.right]);
 
 const yScale = d3.scaleLinear()
-  .domain([40.580, 40.740]) // Latitude range for Brooklyn
+  .domain([40.580, 40.740])
   .range([height - margins.bottom, margins.top]);
 
-// Create SVG dynamically
 const svg = d3.select("div#plot")
   .append('svg')
   .attr('width', width)
   .attr('height', height)
   .style('border', '1px solid black');
 
-// Add Axes
 const xAxis = d3.axisBottom(xScale).ticks(5);
 const yAxis = d3.axisLeft(yScale).ticks(5);
 
@@ -216,82 +210,80 @@ svg.append('g')
   .attr('transform', `translate(${margins.left}, 0)`)
   .call(yAxis);
 
+// Add a group for circles and labels
+const dataGroup = svg.append('g').attr('class', 'data-group');
+
 const updateChart = (currentDate) => {
-  // Group data by latitude and longitude and count occurrences
   const groupedData = d3.rollup(
     data.filter((d) => new Date(d.date).toDateString() === currentDate.toDateString()),
-    (v) => v.length, // Count occurrences
-    (d) => `${d.latitude},${d.longitude}` // Group by lat,long
+    (v) => v.length,
+    (d) => `${d.latitude},${d.longitude}`
   );
 
-  // Convert grouped data to an array
   const processedData = Array.from(groupedData, ([key, count]) => {
     const [latitude, longitude] = key.split(',').map(Number);
     return { latitude, longitude, count };
   });
 
-  // Bind circles to data
-  const circles = svg.selectAll('circle')
+  const circles = dataGroup.selectAll('circle')
     .data(processedData, (d) => d.latitude + ',' + d.longitude);
 
-  // Enter
   circles.enter()
     .append('circle')
     .attr('cx', (d) => xScale(d.longitude))
     .attr('cy', (d) => yScale(d.latitude))
-    .attr('r', (d) => Math.sqrt(d.count) * 2 + 3) // Scale size by count
+    .attr('r', (d) => Math.sqrt(d.count) * 2 + 3)
     .style('fill', 'none')
     .style('stroke', 'blue')
     .style('stroke-width', 2)
-    .merge(circles) // Update
+    .merge(circles)
     .transition()
     .duration(500)
     .attr('cx', (d) => xScale(d.longitude))
     .attr('cy', (d) => yScale(d.latitude));
 
-  // Exit
   circles.exit()
     .transition()
     .duration(500)
     .attr('r', 0)
     .remove();
 
-  // Add labels to show count
-  const labels = svg.selectAll('text')
+  const labels = dataGroup.selectAll('text')
     .data(processedData, (d) => d.latitude + ',' + d.longitude);
 
-  // Enter labels
   labels.enter()
     .append('text')
     .attr('x', (d) => xScale(d.longitude))
-    .attr('y', (d) => yScale(d.latitude) - 10) // Position above the circle
+    .attr('y', (d) => yScale(d.latitude) - 10)
     .style('text-anchor', 'middle')
     .style('font-size', '12px')
     .style('fill', 'black')
     .text((d) => d.count)
-    .merge(labels) // Update
+    .merge(labels)
     .transition()
     .duration(500)
     .attr('x', (d) => xScale(d.longitude))
     .attr('y', (d) => yScale(d.latitude) - 10)
     .text((d) => d.count);
 
-  // Exit labels
   labels.exit()
     .transition()
     .duration(500)
     .style('opacity', 0)
     .remove();
 
-  // Update date panel
   datePanel.text(`Current Date: ${currentDate.toISOString().split('T')[0]}`);
 };
 
-// Initial render
 updateChart(currentDate.value);
 
-// Button click event
 d3.select('#next-day').on('click', () => {
   currentDate.value.setDate(currentDate.value.getDate() + 1);
   updateChart(currentDate.value);
 });
+
+d3.select('#previous-day').on('click', () => {
+  currentDate.value.setDate(currentDate.value.getDate() - 1);
+  updateChart(currentDate.value);
+});
+
