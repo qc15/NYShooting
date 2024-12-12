@@ -1,23 +1,20 @@
 # Results
 
-```{r, include = FALSE, echo = FALSE}
+```{r, message = FALSE}
 library(tidyr)
 library(dplyr)
 library(ggplot2)
 library(lubridate) 
 library(vcd)
 df = read.csv("data/raw/NYPD_Shooting_Incident_Data.csv")
-head(df)
-
 df$OCCUR_DATE <- as.Date(df$OCCUR_DATE, format = "%m/%d/%Y")
-df
 ```
 
 
 #(1) Line Plot: Number of Incidents over Years
 At first glance at the dataset, we can see that New York City is divided into five different boroughs:Brooklyn, Bronx, Manhattan, Queens, and Staten Island. To investigate the relationship between safety levels across these areas, we began by using a line plot to visualize and compare the number of shooting incidents in each borough.
 
-```{r, }
+```{r}
 crime_data <- df |>
   mutate(YearMonth = format(as.Date(OCCUR_DATE), "%Y-%m")) |>
   group_by(YearMonth, BORO) |>
@@ -338,17 +335,15 @@ The heatmap above shows the heatmap of age groups of perpetrators and victims. F
 
 #Location for d3
 ```{r}
-print(crime_data)
 filtered_data <- crime_data |>
   filter(
     BORO == "BROOKLYN",                              # Only data from Brooklyn
     format(OCCUR_DATE, "%Y-%m") == "2020-07"
   ) |>
   select(OCCUR_DATE, BORO, Latitude, Longitude)
-print(filtered_data)
 ```
 
-```{r}
+```{r, results='hide'}
 output_text <- filtered_data %>%
   mutate(
     text = paste0("{ latitude: ", Latitude, 
@@ -364,21 +359,17 @@ output_text <- paste0("[\n  ", output_text, "\n]")
 # Print the result
 cat(output_text)
 ```
+
 ```{r}
 date_counts <- filtered_data %>%
   group_by(OCCUR_DATE) %>%
   summarize(Count = n())
-
-# Print the counts
-print(date_counts)
 ```
 
-```{r}
-# Find minimum value in each column
+```{r, results = 'hide'}
 min_values <- apply(filtered_data, 2, min)
 max_values <- apply(filtered_data, 2, max)
 
-# Print result
 print(min_values)
 print(max_values)
 ```

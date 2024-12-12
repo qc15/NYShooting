@@ -190,11 +190,11 @@ const datePanel = d3.select('div#plot')
 
 // Create scales
 const xScale = d3.scaleLinear()
-  .domain([-74.02, -73.86]) // Longitude range for Brooklyn
+  .domain([-74.015, -73.860]) // Longitude range for Brooklyn
   .range([margins.left, width - margins.right]);
 
 const yScale = d3.scaleLinear()
-  .domain([40.58, 40.74]) // Latitude range for Brooklyn
+  .domain([40.580, 40.740]) // Latitude range for Brooklyn
   .range([height - margins.bottom, margins.top]);
 
 // Create SVG dynamically
@@ -216,23 +216,33 @@ svg.append('g')
   .attr('transform', `translate(${margins.left}, 0)`)
   .call(yAxis);
 
-// Update function
 const updateChart = (currentDate) => {
-  const filteredData = data.filter(
-    (d) => new Date(d.date).toDateString() === currentDate.toDateString()
+  // Group data by latitude and longitude and count occurrences
+  const groupedData = d3.rollup(
+    data.filter((d) => new Date(d.date).toDateString() === currentDate.toDateString()),
+    (v) => v.length, // Count occurrences
+    (d) => `${d.latitude},${d.longitude}` // Group by lat,long
   );
 
-  // Bind data
+  // Convert grouped data to an array
+  const processedData = Array.from(groupedData, ([key, count]) => {
+    const [latitude, longitude] = key.split(',').map(Number);
+    return { latitude, longitude, count };
+  });
+
+  // Bind circles to data
   const circles = svg.selectAll('circle')
-    .data(filteredData, (d) => d.latitude + ',' + d.longitude);
+    .data(processedData, (d) => d.latitude + ',' + d.longitude);
 
   // Enter
   circles.enter()
     .append('circle')
     .attr('cx', (d) => xScale(d.longitude))
     .attr('cy', (d) => yScale(d.latitude))
-    .attr('r', 5)
-    .style('fill', 'blue')
+    .attr('r', (d) => Math.sqrt(d.count) * 2 + 3) // Scale size by count
+    .style('fill', 'none')
+    .style('stroke', 'blue')
+    .style('stroke-width', 2)
     .merge(circles) // Update
     .transition()
     .duration(500)
@@ -245,7 +255,34 @@ const updateChart = (currentDate) => {
     .duration(500)
     .attr('r', 0)
     .remove();
-    
+
+  // Add labels to show count
+  const labels = svg.selectAll('text')
+    .data(processedData, (d) => d.latitude + ',' + d.longitude);
+
+  // Enter labels
+  labels.enter()
+    .append('text')
+    .attr('x', (d) => xScale(d.longitude))
+    .attr('y', (d) => yScale(d.latitude) - 10) // Position above the circle
+    .style('text-anchor', 'middle')
+    .style('font-size', '12px')
+    .style('fill', 'black')
+    .text((d) => d.count)
+    .merge(labels) // Update
+    .transition()
+    .duration(500)
+    .attr('x', (d) => xScale(d.longitude))
+    .attr('y', (d) => yScale(d.latitude) - 10)
+    .text((d) => d.count);
+
+  // Exit labels
+  labels.exit()
+    .transition()
+    .duration(500)
+    .style('opacity', 0)
+    .remove();
+
   // Update date panel
   datePanel.text(`Current Date: ${currentDate.toISOString().split('T')[0]}`);
 };
