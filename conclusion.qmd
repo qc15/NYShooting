@@ -1,1 +1,21 @@
 # Conclusion
+Through our research, we found that among the boroughs of New York City, Brooklyn has the highest number of shooting incidents, followed by the Bronx. Staten Island, due to its smaller size and sparse population, has significantly fewer cases. In the study of cyclic patterns, we discovered that weekends (especially Sundays) during the week, summer (July and August) during the year, and nighttime hours from 8 PM to 2 AM are the periods with the highest frequency of incidents.
+
+When analyzing victims, it is evident that the number of male victims significantly surpasses females, reflecting that men are more likely to engage in violent social activities and consequently suffer harm. Regarding racial analysis, Black, White Hispanic, and Black Hispanic groups rank as the top three victim demographics, indicating that these groups require additional protection.
+
+To enable researchers to better observe crime data, we focused on the outlier month of July 2020 in Brooklyn and used D3 to create a latitude-longitude map depicting crime locations and dates. This visualization aims to assist in observing and predicting potential locations and times for major shooting incidents.
+
+Reflecting on our study, I believe the biggest limitation lies in the lack of additional social context related to the shooting incidents within the dataset. Key factors such as economic conditions, community resource allocation, law enforcement intensity, and even the impact of the pandemic are missing. Consequently, analyses based solely on regional divisions, gender, and race are not comprehensive. Furthermore, since the data does not indicate the relationship between victims and offenders (e.g., whether they were acquainted or gang-related), we are unable to conduct deeper investigations, potentially overlooking critical patterns.
+
+Regarding the D3 visualization, we chose to focus on a significant outlier, specifically Brooklyn in July 2020, due to the extensive size of the dataset. However, this approach might not reflect the long-term trends across other boroughs and time periods in New York City.
+
+To address these issues, I propose future directions that include expanding the dataset's scope to study the temporal and spatial distribution of shooting incidents across all of New York City, along with their long-term trends. Incorporating broader socioeconomic data could provide a more nuanced and detailed understanding of these incidents. Additionally, extracting more specific background information on both victims and offenders is crucial to better understand the causes of these events and to design more effective control measures based on these insights.
+
+
+
+
+
+
+
+
+

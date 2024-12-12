@@ -6,6 +6,6 @@ By analyzing the NYPD Shooting Incident Data (Historic), we aim to understand th
 We will explore the data through the researches listed below:
 1,Crime Rate Differences by Region: Investigate the variations in crime rates across different boroughs and neighborhoods in New York City to identify regional disparities and potential influencing factors.
 
-2,Crime Rate Differences by Location Classification: To be more specific, investigate the variations in crime rates across different locations. Combining with the formal research, exploring the furthur relationship between shooting crime and Region+Location.
+2,Cyclic Patterns of Crime: Analyze the distribution of crimes over time, focusing on seasonal, weekly, monthly, or daily trends, to identify peak periods and understand temporal variations in gun violence incidents.
 
-3,Temporal Patterns of Crime: Analyze the distribution of crimes over time, focusing on seasonal, monthly, or daily trends, to identify peak periods and understand temporal variations in gun violence incidents.
+3,Information about the victims and their relationship with Perpetrator: Further investigation into specific details about the victims, such as age, gender, and race, can help us better protect and manage specific groups of people.

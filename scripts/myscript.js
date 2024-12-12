@@ -180,6 +180,9 @@ const height = 600;
 const margins = { top: 20, right: 20, bottom: 40, left: 40 };
 const currentDate = { value: new Date('2020-07-01') };
 
+const minDate = new Date('2020-07-01');
+const maxDate = new Date('2020-07-31');
+
 const datePanel = d3.select('div#plot')
   .insert('div', ':first-child')
   .attr('class', 'date-panel')
@@ -242,6 +245,21 @@ const updateChart = (currentDate) => {
     return { latitude, longitude, count };
   });
 
+if (processedData.length === 0) {
+    svg.selectAll('.no-data-text').remove(); 
+    svg.append('text')
+      .attr('class', 'no-data-text')
+      .attr('x', width / 2)
+      .attr('y', height / 2)
+      .attr('text-anchor', 'middle')
+      .style('font-size', '16px')
+      .style('fill', 'gray')
+      .text('No incidents on this day');
+    return; 
+  }
+
+  svg.selectAll('.no-data-text').remove();
+
   const circles = dataGroup.selectAll('circle')
     .data(processedData, (d) => d.latitude + ',' + d.longitude);
 
@@ -292,16 +310,75 @@ const updateChart = (currentDate) => {
   datePanel.text(`Current Date: ${currentDate.toISOString().split('T')[0]}`);
 };
 
-updateChart(currentDate.value);
+const slider = d3.select("div#plot")
+  .append("input")
+  .attr("type", "range")
+  .attr("min", new Date('2020-07-01').getTime()) 
+  .attr("max", new Date('2020-07-31').getTime()) 
+  .attr("step", 24 * 60 * 60 * 1000) 
+  .attr("value", currentDate.value.getTime()) 
+  .on("input", function () {
+    currentDate.value = new Date(+this.value);
+    updateChart(currentDate.value);
+  });
 
-d3.select('#next-day').on('click', () => {
-  currentDate.value.setDate(currentDate.value.getDate() + 1);
+
+const sliderLabel = d3.select("div#plot")
+  .append("div")
+  .attr("class", "slider-label")
+  .style("margin-top", "10px")
+  .style("font-size", "14px")
+  .text(`Selected Date: ${currentDate.value.toISOString().split('T')[0]}`);
+
+slider.on("input", function () {
+  currentDate.value = new Date(+this.value);
+  sliderLabel.text(`Selected Date: ${currentDate.value.toISOString().split('T')[0]}`);
   updateChart(currentDate.value);
 });
 
+let isPlaying = false;
+let interval;
+
+const playButton = d3.select("div#plot")
+  .append("button")
+  .attr("id", "play")
+  .text("Play");
+
+playButton.on("click", () => {
+  if (isPlaying) {
+    clearInterval(interval);
+    isPlaying = false;
+    playButton.text("Play");
+  } else {
+    isPlaying = true;
+    playButton.text("Pause");
+    interval = setInterval(() => {
+      if (currentDate.value < new Date('2020-07-31')) {
+        currentDate.value.setDate(currentDate.value.getDate() + 1); 
+        updateChart(currentDate.value); 
+      } else {
+        clearInterval(interval);
+        isPlaying = false;
+        playButton.text("Play");
+      }
+    }, 1000); 
+  }
+});
+
+updateChart(currentDate.value);
+
+d3.select('#next-day').on('click', () => {
+  if (currentDate.value < maxDate) {
+    currentDate.value.setDate(currentDate.value.getDate() + 1);
+    updateChart(currentDate.value);
+  }
+});
+
 d3.select('#previous-day').on('click', () => {
-  currentDate.value.setDate(currentDate.value.getDate() - 1);
-  updateChart(currentDate.value);
+  if (currentDate.value > minDate) {
+    currentDate.value.setDate(currentDate.value.getDate() - 1);
+    updateChart(currentDate.value);
+  }
 });
 
 d3.select("div#plot")
@@ -309,4 +386,4 @@ d3.select("div#plot")
   .attr("class", "user-instruction")
   .style("font-size", "14px")
   .style("margin-top", "20px")
-  .text("Instruction: The graph represents the location of the shooting incidents on the date in Brooklyn shown on the top of the graph. Each number near each circle represents the number of victims in that location. Click the button 'Next Day' to see the location of the shooting incidents on the next day in Brooklyn and click the button 'Previous Day' to see the location of shooting incidents on the previous day.")
+  .text("Instruction: The graph represents the location of the shooting incidents on the date in Brooklyn for the whole 2020.7 shown on the top of the graph. Each number near each circle represents the number of victims in that location. Click the button 'Next Day' to see the location of the shooting incidents on the next day in Brooklyn and click the button 'Previous Day' to see the location of shooting incidents on the previous day.")
